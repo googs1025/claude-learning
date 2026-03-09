@@ -1,0 +1,7 @@
+.idea/
+.claude/
+.env
+*.exe
+*.test
+*.out
+vendor/

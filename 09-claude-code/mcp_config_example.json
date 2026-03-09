@@ -1,0 +1,47 @@
+{
+  "_comment": "Claude Code MCP Server 配置示例",
+  "_usage": "将此内容添加到 .claude/settings.json 的 mcpServers 字段中",
+
+  "mcpServers": {
+    "filesystem": {
+      "_comment": "文件系统 MCP Server - 提供文件读写能力",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/path/to/allowed/directory"
+      ]
+    },
+
+    "github": {
+      "_comment": "GitHub MCP Server - 提供 GitHub API 访问能力",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+      }
+    },
+
+    "sqlite": {
+      "_comment": "SQLite MCP Server - 提供数据库查询能力",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "/path/to/database.db"
+      ]
+    },
+
+    "custom-go-server": {
+      "_comment": "自定义 Go MCP Server - 参考第7章示例",
+      "command": "go",
+      "args": ["run", "./07-mcp/01_mcp_server_basic.go"],
+      "env": {
+        "CUSTOM_CONFIG": "value"
+      }
+    }
+  }
+}
