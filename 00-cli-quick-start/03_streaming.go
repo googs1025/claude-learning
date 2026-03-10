@@ -8,8 +8,8 @@
 // 2. 通过 StdoutPipe 逐行读取输出
 // 3. 解析 stream-json 格式，实时显示生成的文本
 //
-// stream-json 格式：每行是一个 JSON 对象，包含 type 字段
-// 我们关注 type="assistant" 的事件，其中包含生成的文本内容
+// stream-json 格式：每行是一个 JSON 对象，结构为：
+// {"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}}
 
 package main
 
@@ -21,10 +21,22 @@ import (
 	"os/exec"
 )
 
-// StreamEvent 表示流式输出的一个事件
+// StreamMessage 表示流式输出的顶层消息
+type StreamMessage struct {
+	Type  string      `json:"type"`  // 顶层类型：stream_event, result
+	Event StreamEvent `json:"event"` // 事件详情
+}
+
+// StreamEvent 表示流中的一个事件
 type StreamEvent struct {
-	Type    string `json:"type"`              // 事件类型：assistant, result, 等
-	Content string `json:"content,omitempty"` // 文本内容（type=assistant 时）
+	Type  string     `json:"type"` // 事件类型：content_block_delta, message_start 等
+	Delta EventDelta `json:"delta"`
+}
+
+// EventDelta 表示增量内容
+type EventDelta struct {
+	Type string `json:"type"` // delta 类型：text_delta
+	Text string `json:"text"` // 实际文本内容
 }
 
 func main() {
@@ -50,19 +62,23 @@ func main() {
 
 	// 使用 Scanner 逐行读取流式输出
 	scanner := bufio.NewScanner(stdout)
+	// 增大缓冲区以处理可能的长行 JSON
+	scanner.Buffer(make([]byte, 0, 256*1024), 256*1024)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		// 解析每行 JSON
-		var event StreamEvent
-		if err := json.Unmarshal([]byte(line), &event); err != nil {
-			// 跳过无法解析的行
+		var msg StreamMessage
+		if err := json.Unmarshal([]byte(line), &msg); err != nil {
 			continue
 		}
 
-		// 只处理 assistant 类型的事件（包含实际生成的文本）
-		if event.Type == "assistant" && event.Content != "" {
-			fmt.Print(event.Content)
+		// 提取文本增量：stream_event → content_block_delta → text_delta
+		if msg.Type == "stream_event" &&
+			msg.Event.Type == "content_block_delta" &&
+			msg.Event.Delta.Type == "text_delta" {
+			fmt.Print(msg.Event.Delta.Text)
 		}
 	}
 

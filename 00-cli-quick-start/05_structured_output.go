@@ -8,7 +8,9 @@
 // 2. 使用 --json-schema 约束输出的 JSON 结构
 // 3. 将 Claude 的输出解析为 Go 结构体
 //
-// --json-schema 确保 Claude 的回复严格遵循指定的 JSON 格式
+// --output-format json 返回格式：
+// {"type":"result","result":"...","structured_output":{...},"session_id":"...","total_cost_usd":...}
+// 使用 --json-schema 时，structured_output 字段包含符合 schema 的已解析 JSON 对象
 
 package main
 
@@ -61,6 +63,7 @@ func main() {
 	}`
 
 	// 调用 claude CLI，使用 --json-schema 参数
+	// 注意：使用 Output() 而不是 CombinedOutput()，避免 stderr 混入 JSON
 	cmd := exec.Command("claude",
 		"-p", prompt,
 		"--output-format", "json",
@@ -68,33 +71,24 @@ func main() {
 		"--model", "sonnet",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := cmd.Output()
 	if err != nil {
-		log.Fatalf("调用 claude CLI 失败: %v\n输出: %s", err, string(output))
+		log.Fatalf("调用 claude CLI 失败: %v", err)
 	}
 
-	// 解析 JSON 输出
-	// --output-format json 会返回一个包含 result 字段的 JSON 对象
+	// 解析 CLI 的 JSON 响应
+	// --output-format json 返回：{"type":"result", "result":"...", "structured_output":{...}, ...}
+	// 使用 --json-schema 时，structured_output 包含符合 schema 的 JSON 对象
 	var response struct {
-		Result string `json:"result"`
+		Type             string   `json:"type"`
+		Result           string   `json:"result"`
+		StructuredOutput BookList `json:"structured_output"`
 	}
 	if err := json.Unmarshal(output, &response); err != nil {
-		// 如果整体不是 JSON 包装，尝试直接解析为 BookList
-		var books BookList
-		if err2 := json.Unmarshal(output, &books); err2 != nil {
-			log.Fatalf("解析 JSON 失败: %v\n原始输出: %s", err, string(output))
-		}
-		printBooks(books)
-		return
+		log.Fatalf("解析 JSON 响应失败: %v\n原始输出: %s", err, string(output))
 	}
 
-	// 解析 result 字段中的实际内容
-	var books BookList
-	if err := json.Unmarshal([]byte(response.Result), &books); err != nil {
-		log.Fatalf("解析书籍数据失败: %v\n原始数据: %s", err, response.Result)
-	}
-
-	printBooks(books)
+	printBooks(response.StructuredOutput)
 }
 
 func printBooks(books BookList) {

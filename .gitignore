@@ -5,3 +5,7 @@
 *.test
 *.out
 vendor/
+
+# Go compiled binaries (root level only)
+/0[0-9]_*
+!/*.go

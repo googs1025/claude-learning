@@ -14,7 +14,7 @@
 npm install -g @anthropic-ai/claude-code
 ```
 
-推荐学习顺序：**00** → **09** → **07**（MCP Server 不需要 API Key）
+推荐学习顺序：**00** → **09** → **11** → **12** → **07**（MCP Server 不需要 API Key）
 
 ### 路径 B：有 API Key（完整学习路径）
 
@@ -45,6 +45,8 @@ go mod tidy
 | [08-agent-patterns](./08-agent-patterns/) | Agent 模式 | ★★★ | ✓ | ReAct、多 Agent、记忆管理 |
 | [09-claude-code](./09-claude-code/) | Claude Code | ★★☆ | | CLI 使用、Hooks、MCP 配置 |
 | [10-projects](./10-projects/) | 综合实战 | ★★★ | ✓ | 聊天机器人、代码审查、RAG 助手 |
+| [11-cli-mastery](./11-cli-mastery/) | CLI 高级技巧 | ★★☆ | | 会话管理、输出解析、工具限制、预算控制 |
+| [12-skills](./12-skills/) | Skills 技能扩展 | ★★☆ | | 自定义 Skill 开发、技能测试 |
 
 ## 技术栈
 
