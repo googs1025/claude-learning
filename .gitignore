@@ -6,6 +6,13 @@
 *.out
 vendor/
 
+# macOS 系统文件
+.DS_Store
+
+# 生成的文档文件
+*.html
+*.pdf
+
 # Go compiled binaries (root level only)
 /0[0-9]_*
 !/*.go
